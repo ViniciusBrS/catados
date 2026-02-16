@@ -1,0 +1,24 @@
+- criar paginacao - OK
+- no form de cadastro de jogadores, colocar select para posicao - OK
+- ajustar grafico habilidades - OK
+- senha para adm - OK
+
+Elenco
+- Aumentar texto do select
+- recarregar os dataframes qndo atualizar alguma coisa - OK
+- colocar seleção de posicoes no crud de jogadores
+
+Partidas
+- colocar validacao adm
+- recarregar os dataframes qndo atualizar alguma coisa
+- Mapa na pagina de partidas
+- ajustar validacao de gols vs gols registrados
+- trocar a tabela de 'presentes na partida' por um grafico de qtde de jogadores por partidas
+
+
+--- ideias futuras
+
+Elenco
+- Foto
+
+Partidas
