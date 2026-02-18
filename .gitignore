@@ -2,3 +2,4 @@
 \.venv
 \old
 \__pycache__
+*.ipynb

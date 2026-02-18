@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 from supabase import create_client, Client
+from collections import Counter
 
 # =========================
 # Supabase connection
@@ -20,8 +21,10 @@ supabase = get_supabase()
 # =========================
 # Helpers (DB)
 # =========================
-def sb_select(table: str, columns="*", order: str | None = None, asc: bool = True):
+def sb_select(table: str, columns="*", order: str | None = None, filtro = None,asc: bool = True):
     q = supabase.table(table).select(columns)
+    if filtro:
+        q = q.eq(filtro[0], filtro[1])
     if order:
         q = q.order(order, desc=not asc)
     res = q.execute()
@@ -66,7 +69,7 @@ def clamp_0_100(v: int) -> int:
 def load_stats_jogadores():
     return sb_select(
         "vw_jogadores_estatisticas",
-        columns="nome_completo,numero_camisa, posicao, partidas, gols, assistencias",
+        columns="id,nome_completo,numero_camisa, posicao, partidas, gols, assistencias",
         order="nome_completo",
         asc=True
     )
@@ -124,7 +127,29 @@ def clear_caches():
 # =========================
 # Position + OVR calc (0..100)
 # =========================
-def normalizar_posicao(posicao: str | None) -> str:
+def normalizar_posicao(posicoes: list | None) -> str:
+    dict_norm = {"GK":"GK",
+             "SW":"DF","CB":"DF","SB":"DF",
+             "DMF":"MF","WB":"MF","CMF":"MF","SMF":"MF","OMF":"MF",
+             "WG":"FW","ST":"FW","CF":"FW"}
+    
+    if "GK" in posicoes:
+        return "GK"
+    
+    cnts = Counter([dict_norm.get(k) for k in posicoes])
+
+    if (cnts.get("DF") or 0) >= (cnts.get("MF") or 0):
+        return "DF"
+
+    if (cnts.get("FW") or 0) >= (cnts.get("MF") or 0):
+        return "FW"
+    
+    if (cnts.get("MF") or 0) > (cnts.get("FW") or 0):
+        return "MF"
+   
+    return "MF"
+
+def normalizar_posicao_old(posicao: str | None) -> str:
     if not posicao:
         return "MF"
     p = posicao.strip().lower()
@@ -143,11 +168,11 @@ def normalizar_posicao(posicao: str | None) -> str:
 
     return "MF"
 
-def calcular_overall_por_posicao(posicao: str | None, skills: dict) -> int:
+def calcular_overall_por_posicao(posicoes: list | None, skills: dict) -> int:
     """
     Skills em 0..100 -> OVR 0..100 (média ponderada por posição)
     """
-    cat = normalizar_posicao(posicao)
+    cat = normalizar_posicao(posicoes)
 
     pesos_por_cat = {
         "GK": {  # proxy (sem stats de goleiro específicos)
@@ -653,11 +678,13 @@ def Xplot_radar_plotly(skills: dict, titulo: str):
 # UI helpers
 # =========================
 
-def df_pick_id(df: pd.DataFrame, label_col: str, vkey: str = None, id_col: str = "id", label="Selecione"):
+
+def df_pick_id(df: pd.DataFrame, label_col: str, vkey: str = None, id_col: str = "id", label="Selecione", lbl_visibility='visible'):
     if df.empty:
         return None, None
     options = [(row[id_col], row[label_col]) for _, row in df.iterrows()]
-    selected = st.selectbox(label, options, format_func=lambda x: x[1], key=vkey)
+    selected = st.selectbox(label,options, format_func=lambda x: x[1], key=vkey,  label_visibility=lbl_visibility)
+
     return selected[0], selected[1]
 
 
