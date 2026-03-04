@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 import streamlit as st
 from supabase import create_client, Client
 from collections import Counter
+import googlemaps
 
 # =========================
 # Supabase connection
@@ -62,6 +63,11 @@ def safe_int(x, default=0):
 def clamp_0_100(v: int) -> int:
     return max(0, min(100, v))
 
+def getGeocode(endereco):
+    gmaps = googlemaps.Client(key=st.secrets.get("MAPS_API_KEY", ""))
+    geocode_result = gmaps.geocode(endereco)
+    return geocode_result[0].get("geometry").get("location").get("lat"), geocode_result[0].get("geometry").get("location").get("lng")
+
 # =========================
 # Cached loads
 # =========================
@@ -74,6 +80,13 @@ def load_stats_jogadores():
         asc=True
     )
 
+def load_count_jogadores():
+    return sb_select(
+        "vw_partidas_count_jogadores",
+        columns="id,data_partida,adversario, qtd_jogadores",
+        order="data_partida",
+        asc=True
+    )
 
 # @st.cache_data
 def load_jogadores():
@@ -88,7 +101,7 @@ def load_jogadores():
 def load_partidas():
     return sb_select(
         "partidas",
-        columns="id,data_partida,hora_partida,adversario,mandante,competicao,rodada,gols_pro,gols_contra,local_nome,endereco_linha,bairro,cidade,estado,cep,observacoes,criado_em,atualizado_em",
+        columns="id,data_partida,hora_partida,adversario,mandante,competicao,rodada,gols_pro,gols_contra,local_nome,endereco_linha,bairro,cidade,estado,cep,observacoes,criado_em,atualizado_em, latitude, longitude",
         order="data_partida",
         asc=False
     )
