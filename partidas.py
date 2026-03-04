@@ -44,7 +44,7 @@ container = st.container()
 
 
 with container:
-    st_mapa = st_folium(mapa, use_container_width=True)
+    st_mapa = st_folium(mapa, height=500,use_container_width=True)
 
 st.divider()
 
@@ -77,17 +77,19 @@ fig.update_xaxes(
     tickvals = dfcj['data_partida'].tolist(),
     tickformat="%d/%m/%Y",
     gridcolor='rgba(0,0,0,0.08)',
-    zeroline=False
+    zeroline=False,
+    fixedrange=True
 )
 
 # Eixo Y (inteiros)
 fig.update_yaxes(
     dtick=1,
      gridcolor='rgba(0,0,0,0.08)',
-    zeroline=False
+    zeroline=False,
+    fixedrange=True
 )
 
-st.plotly_chart(fig, width='stretch', config={"displayModeBar": False})
+st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, 'scrollZoom': False})
 
 st.divider()
 
