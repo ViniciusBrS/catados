@@ -15,7 +15,7 @@ dfp = f.to_df(f.load_partidas())
 dfcj = f.to_df(f.load_count_jogadores())
 dfcj['data_partida'] = pd.to_datetime(dfcj['data_partida'])
 
-st.subheader("Clique nos marcadores para visualizar os detalhes da partida")
+
 # if dfp.empty:
 #     st.info("Cadastre a primeira partida no formulário acima.")
 #     st.stop()
@@ -40,11 +40,11 @@ for i in dfp.itertuples():
     icon=folium.Icon(color="blue", icon="info-sign")
     ).add_to(mapa)
 
-container = st.container()
-
-
-with container:
-    st_mapa = st_folium(mapa, height=500,use_container_width=True)
+with st.expander("Mostrar mapa das partidas"):
+    st.subheader("Clique nos marcadores para visualizar os detalhes da partida")
+    container = st.container()
+    with container:
+        st_mapa = st_folium(mapa, height=500,use_container_width=True)
 
 st.divider()
 
