@@ -1,4 +1,4 @@
-\.streamlit
+secrets.toml
 \.venv
 \old
 \__pycache__

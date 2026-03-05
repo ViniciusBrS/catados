@@ -24,7 +24,7 @@ if dfj.empty:
 cntr_jogador = st.container(border=True)
 with cntr_jogador:
     st.subheader("Detalhes do jogador")
-    st.caption("Estatísticas gerais, radar de habilidades e posições em que atua.")
+    st.caption("Estatísticas gerais, posições e radar de habilidades.")
     cc0, cc1, cc2, cc3 = st.columns(4)
     with cc0:
         dfj["label"] = dfj.apply(lambda r: f'{r["nome_completo"]} ({r["numero_camisa"] or "-"})', axis=1)
@@ -77,10 +77,14 @@ with cntr_jogador:
     c3.metric("Gols", total_gols)
     c4.metric("Assistências", total_assists)
 
-    tabRadar, tabHab, tabPos = st.tabs(['Radar de habilidades','Editar Habilidades','Posições'])
+    tabPos, tabRadar, tabHab,  = st.tabs(['♟️ Posições', '📊 Radar de habilidades','⚙️ Editar Habilidades'])
 
+    
+    with tabPos:
+        st.subheader("Posições")
+        f.render_pes_positions_grid(pos_can_play)
     with tabRadar:
-        fig = f.plot_radar_pes_hex_hud(st.session_state["hab"], f"{jogador_label} | OVR {ovr_atual}")
+        fig = f.plot_radar_pes_hex_hud(st.session_state["hab"], f"{jogador_label} | OVERALL {ovr_atual}")
         st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, 'scrollZoom': False, "staticPlot": True})
 
     with tabHab:
@@ -93,7 +97,7 @@ with cntr_jogador:
             defesa = st.slider("Defesa", 0, 100, f.clamp_0_100(int(st.session_state["hab"].get("defesa", 50))))
             fisico = st.slider("Físico", 0, 100, f.clamp_0_100(int(st.session_state["hab"].get("fisico", 50))))
 
-            salvar = st.form_submit_button("Salvar habilidades e recalcular OVR")
+            salvar = st.form_submit_button("Salvar habilidades e recalcular Overall")
             if salvar:
                 if st.session_state['adm']:
                     payload = {
@@ -115,9 +119,6 @@ with cntr_jogador:
                 else:
                     st.toast("Liberado apenas para ADM!", icon="❌")
 
-    with tabPos:
-        st.subheader("Posições")
-        f.render_pes_positions_grid(pos_can_play)
 
 cntr_cad = st.container(border=True)
 with cntr_cad:
@@ -167,7 +168,7 @@ with cntr_cad:
                 st.stop()
 
             dfj["label"] = dfj.apply(
-                lambda r: f'{r["nome_completo"]} ({r["posicao"] or "-"}) #{int(r["numero_camisa"]) if pd.notna(r["numero_camisa"]) else "-"}',
+                lambda r: f'{r["nome_completo"]} #{int(r["numero_camisa"]) if pd.notna(r["numero_camisa"]) else "-"}',
                 axis=1
             )
             jogador_id, _ = f.df_pick_id(dfj, label_col="label", id_col="id", label="Selecione o jogador")
