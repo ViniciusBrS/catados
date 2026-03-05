@@ -568,7 +568,8 @@ def plot_radar_pes_hex_hud(skills: dict, titulo: str = "Habilidades"):
                 showticklabels=False,
                 showgrid=False,
                 showline=False,
-                ticks=""
+                ticks="",
+                
             ),
             angularaxis=dict(
                 rotation=30,  # Finalização no topo
@@ -578,6 +579,7 @@ def plot_radar_pes_hex_hud(skills: dict, titulo: str = "Habilidades"):
                 showline=False
             ),
         ),
+        
     )
 
     return fig
