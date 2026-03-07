@@ -151,7 +151,7 @@ def normalizar_posicao(posicoes: list | None) -> str:
     
     cnts = Counter([dict_norm.get(k) for k in posicoes])
 
-    if (cnts.get("DF") or 0) >= (cnts.get("MF") or 0):
+    if (cnts.get("DF") or 0) >= (cnts.get("MF") or 0) and (cnts.get("DF") or 0) >= (cnts.get("FW") or 0):
         return "DF"
 
     if (cnts.get("FW") or 0) >= (cnts.get("MF") or 0):
@@ -459,6 +459,115 @@ def render_pes_positions_grid(can_play: dict):
 # =========================
 # Radar Plotly (0..100)
 # =========================
+def plot_radar_pes_hex(skills: dict, titulo: str = "Habilidades"):
+    categorias = ["Velocidade", "Finalização",  "Drible","Passe", "Defesa", "Físico"]
+    chaves = ["velocidade", "finalizacao",  "drible", "passe","defesa", "fisico"]
+
+    valores = [clamp_0_100(int(skills.get(k, 50))) for k in chaves]
+    valores_fechado = valores + [valores[0]]
+    categorias_fechado = categorias + [categorias[0]]
+
+    # Paleta “PES-like”
+    bg_paper = "#1b1f24"
+    bg_polar = "#2a2f36"
+    grid_col = "#59606a"
+    axis_col = "#aeb6c2"
+    text_col = "#d8dee9"
+    neon = "#ff6f7d"
+    neon_glow = "rgba(255, 111, 125, 0.25)"
+    fill_col = "rgba(255, 111, 125, 0.18)"
+
+    fig = go.Figure()
+
+    # ---- Grade hexagonal (anéis) ----
+    niveis = [20, 40, 60, 80, 100]
+    for lvl in niveis:
+        fig.add_trace(go.Scatterpolar(
+            r=[lvl]*len(categorias) + [lvl],
+            theta=categorias_fechado,
+            mode="lines",
+            line=dict(color=grid_col, width=1),
+            hoverinfo="none",
+            showlegend=False
+        ))
+
+    # ---- “Raios” (linhas do centro) ----
+    for cat in categorias:
+        fig.add_trace(go.Scatterpolar(
+            r=[0, 100],
+            theta=[cat, cat],
+            mode="lines",
+            line=dict(color=grid_col, width=1),
+            hoverinfo="none",
+            showlegend=False
+        ))
+
+    # ---- Contorno externo hexagonal mais forte ----
+    fig.add_trace(go.Scatterpolar(
+        r=[100]*len(categorias) + [100],
+        theta=categorias_fechado,
+        mode="lines",
+        line=dict(color=axis_col, width=2),
+        hoverinfo="none",
+        showlegend=False
+    ))
+
+    # ---- Glow do jogador ----
+    fig.add_trace(go.Scatterpolar(
+        r=valores_fechado,
+        theta=categorias_fechado,
+        mode="lines",
+        line=dict(color=neon_glow, width=10),
+        hoverinfo="none",
+        showlegend=False
+    ))
+
+    # ---- Linha principal do jogador ----
+    fig.add_trace(go.Scatterpolar(
+        r=valores_fechado,
+        theta=categorias_fechado,
+        mode="lines+markers",
+        line=dict(color=neon, width=3),
+        marker=dict(size=6, color=neon),
+        fill="toself",
+        fillcolor=fill_col,
+        showlegend=False,
+        hoverinfo="none",
+        hovertemplate="%{theta}: <b>%{r}</b><extra></extra>",
+        
+    ))
+
+    fig.update_layout(
+        hovermode="closest",
+        title=dict(text=titulo, x=0.5, xanchor="center", font=dict(color=text_col)),
+        paper_bgcolor=bg_paper,
+        plot_bgcolor=bg_paper,
+        margin=dict(l=40, r=40, t=60, b=40),
+        polar=dict(
+            bgcolor=bg_polar,
+
+            # desliga a grade circular padrão (senão mistura)
+            radialaxis=dict(
+                range=[0, 100],
+                showticklabels=False,
+                showgrid=False,
+                showline=False,
+                ticks=""
+            ),
+            angularaxis=dict(
+                rotation=30,  # Finalização no topo
+                direction="counterclockwise",
+                tickfont=dict(color=text_col, size=11),
+                showgrid=False,
+                showline=False
+            ),
+        ),
+    )
+
+
+    return fig
+
+
 def plot_radar_pes_hex_hud(skills: dict, titulo: str = "Habilidades"):
     categorias = ["Velocidade", "Finalização", "Drible", "Passe", "Defesa", "Físico"]
     chaves = ["velocidade", "finalizacao",  "drible", "passe", "defesa", "fisico"]
@@ -539,19 +648,23 @@ def plot_radar_pes_hex_hud(skills: dict, titulo: str = "Habilidades"):
         mode="lines",
         line=dict(color=neon_glow, width=10),
         hoverinfo="skip",
-        showlegend=False
+        showlegend=False,
     ))
 
     # ---- Linha principal do jogador (SEM marcadores) ----
     fig.add_trace(go.Scatterpolar(
         r=valores_fechado,
         theta=categorias_fechado,
-        mode="lines",
+        mode="lines+text",
         line=dict(color=neon, width=3),
         fill="toself",
         fillcolor=fill_col,
         hoverinfo="skip",
-        showlegend=False
+        showlegend=False,
+        # text=valores_fechado,
+        # textposition="top center",
+        # textfont=dict(color='black', size=12),
+        
     ))
 
     fig.update_layout(

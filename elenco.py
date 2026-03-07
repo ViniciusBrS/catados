@@ -12,10 +12,10 @@ st.title("Elenco 2026")
 
 cntr_elenco = st.container(border=True)
 with cntr_elenco:
-    st.caption("Confira o elenco completo e as estatísticas dessa temporada")
+    st.caption("Confira o elenco completo e as estatísticas dos jogadores")
     df_lista = df_stats.drop(["id","posicao"], axis=1)
     df_lista.columns = ['Nome','Número da Camisa','Partidas','Gols','Assistencias']             
-    st.dataframe(df_lista, hide_index=True,width='stretch', selection_mode='single-cell', on_select='rerun')
+    st.dataframe(df_lista, hide_index=True,width='stretch', selection_mode='single-cell', on_select='ignore')
 
 if dfj.empty:
     st.info("Cadastre o primeiro jogador no formulário acima.")
@@ -27,7 +27,7 @@ with cntr_jogador:
     st.caption("Estatísticas gerais, posições e radar de habilidades.")
     cc0, cc1, cc2, cc3 = st.columns(4)
     with cc0:
-        dfj["label"] = dfj.apply(lambda r: f'{r["nome_completo"]} ({r["numero_camisa"] or "-"})', axis=1)
+        dfj["label"] = dfj.apply(lambda r: f'{r["nome_completo"]} {r["apelido"] or ""}', axis=1)
         jogador_id, jogador_label = f.df_pick_id(dfj.query("ativo==True"), label_col="label", id_col="id", label="Selecione o jogador:")
 
     if not jogador_id:
@@ -77,6 +77,9 @@ with cntr_jogador:
     c3.metric("Gols", total_gols)
     c4.metric("Assistências", total_assists)
 
+    #st.caption(f"Posição (normalizada): **{pos_cat}** | Ajuste os sliders (0–100) e salve para recalcular o OVR.")
+
+
     tabPos, tabRadar, tabHab,  = st.tabs(['♟️ Posições', '📊 Radar de habilidades','⚙️ Editar Habilidades'])
 
     
@@ -85,7 +88,7 @@ with cntr_jogador:
         f.render_pes_positions_grid(pos_can_play)
     with tabRadar:
         fig = f.plot_radar_pes_hex_hud(st.session_state["hab"], f"{jogador_label} | OVERALL {ovr_atual}")
-        st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, 'scrollZoom': False, "staticPlot": True})
+        st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, 'scrollZoom': False})
 
     with tabHab:
         st.subheader("Editar habilidades (0–100)")

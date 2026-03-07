@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 import pandas as pd
+import numpy as np
 import streamlit as st
 import plotly.express as px
 import folium
@@ -29,10 +30,10 @@ dfcj['data_partida'] = pd.to_datetime(dfcj['data_partida'])
 
 cntr_tabs1 = st.container(border=True)
 with cntr_tabs1:
-    tbinfomapa, tbinfografr = st.tabs(['🗺️ Mapa de partidas','🏃 Jogadores por partida'])
+    tbresumo, tbinfomapa,  = st.tabs(['📰 Resumo','🗺️ Mapa de partidas'])
 
     with tbinfomapa: 
-        mapa = folium.Map(location=(dfp['latitude'].mean(), dfp['longitude'].mean()), zoom_start=12)
+        mapa = folium.Map(location=(dfp['latitude'].mean(), dfp['longitude'].mean()), zoom_start=11)
         for i in dfp.itertuples():
             folium.Marker(
             location=[i.latitude, i.longitude],
@@ -41,7 +42,7 @@ with cntr_tabs1:
                         <br/>Resultado: Catados {i.gols_pro} x {i.adversario} {i.gols_contra}
                         <br/>Local: {i.local_nome}
                     """,      
-            icon=folium.Icon(color="blue", icon="info-sign")
+            icon=folium.Icon(color="green" if i.gols_pro >= i.gols_contra else "red", icon="info-sign")
             ).add_to(mapa)
 
         
@@ -49,50 +50,30 @@ with cntr_tabs1:
         st.caption("Confira os locais dos jogos já realizados<br/>Clique nos marcadores para visualizar os detalhes da partida.", unsafe_allow_html=True)
         st_mapa = st_folium(mapa, height=500,use_container_width=True)
 
-    with tbinfografr:
-        fig = px.bar(dfcj, x='data_partida', y='qtd_jogadores', 
-                    hover_data=['adversario'],
-                    labels={"data_partida": "Data", "qtd_jogadores": "Qtde. jogadores"},
-                    title='Presença por partida',
-                    subtitle="Quantidade de jogadores presentes em cada partida.")
+    with tbresumo:
+        st.caption("Confira as estatísticas dessa temporada:")
 
-        # Barras neon azul/ciano
-        fig.update_traces(
-            marker_color='#00c2ff',      # azul/ciano moderno
-            marker_line_color='#6c2cff', # roxo neon
-            marker_line_width=2
-        )
-
-
-        # Layout estilo videogame
-        fig.update_layout(
-            plot_bgcolor='#f7f9fc',
-            paper_bgcolor='#ffffff',
-            font=dict(color='#1f2937'),
-            title_font=dict(size=22)
-        )
-
-        # Eixo X
-        fig.update_xaxes(
-            #range=["2026-01-01", "2026-12-31"],
-            #dtick="M1",
-            tickvals = dfcj['data_partida'].tolist(),
-            tickformat="%d/%m/%Y",
-            gridcolor='rgba(0,0,0,0.08)',
-            zeroline=False,
-            fixedrange=True
-        )
-
-        # Eixo Y (inteiros)
-        fig.update_yaxes(
-            dtick=1,
-            gridcolor='rgba(0,0,0,0.08)',
-            zeroline=False,
-            fixedrange=True
-        )
-
+        dfp['vitoria'] = np.where(dfp['gols_pro'] > dfp['gols_contra'], 1,0)
+        dfp['empate'] = np.where(dfp['gols_pro'] == dfp['gols_contra'], 1,0)
+        dfp['derrota'] = np.where(dfp['gols_pro'] < dfp['gols_contra'], 1,0)
+        df_res = dfp.agg({'id':'count','vitoria':'sum','empate':'sum','derrota':'sum','gols_pro':'sum','gols_contra':'sum'}).reset_index().T
+        df_res.columns = df_res.iloc[0]
+        df_res.drop(index='index', inplace=True)
+        df_res['Saldo'] = df_res['gols_pro'] - df_res['gols_contra']
+        df_res.rename(columns={'id':'Jogos','vitoria':'Vitórias', 'empate':'Empates', 'derrota':'Derrotas',
+                            'gols_pro':'Gols Pró', 'gols_contra':'Gols Contra'}, inplace=True)
         
-        st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, 'scrollZoom': False})
+
+        st.dataframe(df_res, hide_index=True,width='stretch', selection_mode='single-cell', on_select='ignore')
+
+        st.empty()
+
+        st.caption("Jogos realizados:")
+        df_resumopartida = dfp[['adversario', 'data_partida', 'local_nome', 'gols_pro', 'gols_contra']]
+        df_resumopartida.columns = ['Adversário', 'Data', 'Local', 'Gols Pró', 'Gols Contra']
+        st.dataframe(df_resumopartida, hide_index=True,width='stretch', selection_mode='single-cell', on_select='ignore')
+
+       
 
 cntr_tabs2 = st.container(border=True)
 with cntr_tabs2:
@@ -147,7 +128,7 @@ with cntr_tabs2:
     with tab1:
         st.markdown("### Registrar gols")
 
-        dfj["label"] = dfj.apply(lambda r: f'{r["nome_completo"]} ({r["posicao"] or "-"})', axis=1)
+        dfj["label"] = dfj.apply(lambda r: f'{r["nome_completo"]} {r["apelido"] or ""}', axis=1)
 
         col1, col2, col3 = st.columns([1, 1, 1], gap="large")
 
@@ -220,7 +201,7 @@ with cntr_tabs2:
 
         # só ativos por padrão
         dfj_ativos = dfj[dfj["ativo"] == True].copy() if "ativo" in dfj.columns else dfj.copy()
-        dfj_ativos["label"] = dfj_ativos.apply(lambda r: f'{r["nome_completo"]} ({r["posicao"] or "-"})', axis=1)
+        dfj_ativos["label"] = dfj_ativos.apply(lambda r: f'{r["nome_completo"]} {r["apelido"] or ""}', axis=1)
 
         default_presentes = [jid for jid in dfj_ativos["id"] if pres_map.get(jid) == "presente"]
 
@@ -333,6 +314,9 @@ with cntr_tabs3:
             if partida_id:
                 row = dfp[dfp["id"] == partida_id].iloc[0]
 
+                data_partida_e = st.date_input("Data da partida*")
+                hora_partida_e = st.time_input("Hora (opcional)")
+
                 adversario_e = st.text_input("Adversário", value=row["adversario"])
                 mandante_e = st.checkbox("Mandante", value=bool(row["mandante"]))
                 competicao_e = st.text_input("Competição", value=row["competicao"] if pd.notna(row["competicao"]) else "")
@@ -367,6 +351,8 @@ with cntr_tabs3:
                             lat_e, long_e = f.getGeocode(endereco_comp_e+", brazil")
 
                             f.sb_update("partidas", {
+                                "data_partida": str(data_partida_e),
+                                "hora_partida": str(hora_partida_e) if hora_partida else None,
                                 "adversario": adversario_e.strip(),
                                 "mandante": mandante_e,
                                 "competicao": competicao_e.strip() if competicao_e else None,
