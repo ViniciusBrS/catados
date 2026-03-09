@@ -10,7 +10,7 @@ import funcs as f
 
 st.set_page_config(page_title="⚽ Catados F.C", layout="wide")
 
-st.title("Controle das partidas")
+st.subheader("Controle das partidas")
 
 dfp = f.to_df(f.load_partidas())
 dfcj = f.to_df(f.load_count_jogadores())

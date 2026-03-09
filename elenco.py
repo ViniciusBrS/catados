@@ -8,7 +8,7 @@ st.set_page_config(page_title="⚽ Catados F.C", layout="wide")
 df_stats = f.to_df(f.load_stats_jogadores())
 dfj = f.to_df(f.load_jogadores())
 
-st.title("Elenco 2026")
+st.subheader("Elenco 2026")
 
 cntr_elenco = st.container(border=True)
 with cntr_elenco:

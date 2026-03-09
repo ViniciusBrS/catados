@@ -15,6 +15,8 @@ with st.sidebar:
             else:
                 st.toast("SENHA INVÁLIDA!!", icon="❌")
 
+st.title('⚽ Catados F.C')
+
 # Define as páginas apontando para arquivos ou funções
 pg_partidas = st.Page("partidas.py", title="Partidas", icon=":material/calendar_check:")
 pg_elenco = st.Page("elenco.py", title="Elenco", icon=":material/groups:")
