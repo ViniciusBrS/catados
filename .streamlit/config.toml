@@ -1,2 +1,8 @@
 [theme]
 base="light"
+
+primaryColor="#8200db"
+font="sans serif"
+
+[client]
+showSidebarNavigation = false
