@@ -88,7 +88,7 @@ with cntr_jogador:
         f.render_pes_positions_grid(pos_can_play)
     with tabRadar:
         fig = f.plot_radar_pes_hex_hud(st.session_state["hab"], f"{jogador_label} | OVERALL {ovr_atual}")
-        st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, 'scrollZoom': False})
+        st.plotly_chart(fig, width='stretch', config={"displayModeBar": False, 'scrollZoom': False, "staticPlot": True})
 
     with tabHab:
         st.subheader("Editar habilidades (0–100)")

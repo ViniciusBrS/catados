@@ -16,18 +16,6 @@ dfp = f.to_df(f.load_partidas())
 dfcj = f.to_df(f.load_count_jogadores())
 dfcj['data_partida'] = pd.to_datetime(dfcj['data_partida'])
 
-
-# if dfp.empty:
-#     st.info("Cadastre a primeira partida no formulário acima.")
-#     st.stop()
-
-# df_tbl_p = dfp.drop(columns=["label","id","mandante","competicao","rodada","criado_em","observacoes","atualizado_em"], errors="ignore")
-# df_tbl_p['Endereço'] = df_tbl_p[["endereco_linha", "cidade", 'estado']].apply(", ".join, axis=1)
-# df_tbl_p.rename(columns={'data_partida':'Data','hora_partida':'Hora', 'adversario':'Adversário', 'gols_pro':'Gols Pró',
-#                     'gols_contra':'Gols Contra', 'local_nome':'Local'},inplace=True)
-# df_tbl_p.drop(columns=['endereco_linha','bairro','cidade','cep','estado'], inplace=True)
-# st.dataframe(df_tbl_p, hide_index=True, width='stretch')
-
 cntr_tabs1 = st.container(border=True)
 with cntr_tabs1:
     tbresumo, tbinfomapa,  = st.tabs(['📰 Resumo','🗺️ Mapa de partidas'])
@@ -100,27 +88,10 @@ with cntr_tabs2:
 
     gols_eventos = len(gols)
     gols_pro_salvo = int(partida_row.get("gols_pro") or 0)
-    #gols_contra_salvo = int(partida_row.get("gols_contra") or 0)
-
-    #st.subheader(partida_label)
-    #c1, c2, c3, c4 = st.columns(4)
-    #c1.metric("Gols pró (eventos)", gols_eventos)
-    #c2.metric("Gols pró (placar salvo)", gols_pro_salvo, delta=(gols_eventos - gols_pro_salvo))
-    #c3.metric("Gols contra (placar salvo)", gols_contra_salvo)
-    #c4.write("")
 
     if gols_eventos != gols_pro_salvo:
-        #st.warning("Diferença entre gols pró em eventos e o placar salvo.")
+
         st.badge("Existem gols marcados sem atribuição!", icon="⚠️", color="orange")
-        # if st.button("Sincronizar placar salvo (gols_pro) com eventos"):
-        #     if st.session_state['adm']:
-        #         f.sb_update("partidas", {"gols_pro": gols_eventos}, {"id": partida_id})
-                
-        #         st.success("gols_pro atualizado com base nos eventos!")
-        #         time.sleep(1)
-        #         st.rerun()
-        #     else:
-        #         st.toast("Liberado apenas para ADM!", icon="❌")
 
     tab1, tab2 = st.tabs(["⚽ Gols e Assistências","✅ Presenças"])
 
